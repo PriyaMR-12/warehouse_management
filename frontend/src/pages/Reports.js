@@ -1,239 +1,249 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
+  Paper,
   Typography,
   Grid,
-  Paper,
+  Button,
+  TextField,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  Button,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  CircularProgress,
+  Alert,
+  Card,
+  CardContent,
+  IconButton,
+  Tooltip,
+  Divider,
 } from '@mui/material';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
+  Download as DownloadIcon,
+  Print as PrintIcon,
+  PictureAsPdf as PdfIcon,
+  DateRange as DateRangeIcon,
+  FilterList as FilterIcon,
+} from '@mui/icons-material';
+import { API_URL } from '../config';
 
 const Reports = () => {
-  const [reportType, setReportType] = useState('sales');
-  const [timeRange, setTimeRange] = useState('month');
-  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [reports, setReports] = useState([]);
+  const [filters, setFilters] = useState({
+    startDate: '',
+    endDate: '',
+    reportType: 'all',
+  });
+  const [selectedReport, setSelectedReport] = useState(null);
 
-  const handleReportTypeChange = (event) => {
-    setReportType(event.target.value);
-  };
+  useEffect(() => {
+    fetchReports();
+  }, [filters]);
 
-  const handleTimeRangeChange = (event) => {
-    setTimeRange(event.target.value);
-  };
+  const fetchReports = async () => {
+    try {
+      setLoading(true);
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user || !user.token) {
+        setError('Please login to view reports');
+        return;
+      }
 
-  const handleGenerateReport = () => {
-    // TODO: Implement report generation logic
-    // This would typically fetch data from the backend based on reportType and timeRange
-  };
+      const queryParams = new URLSearchParams({
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+        type: filters.reportType,
+      });
 
-  const renderReport = () => {
-    switch (reportType) {
-      case 'sales':
-        return (
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                  Sales Overview
-                </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={data}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="sales" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </Paper>
-            </Grid>
-            <Grid item xs={12}>
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Date</TableCell>
-                      <TableCell>Total Sales</TableCell>
-                      <TableCell>Number of Orders</TableCell>
-                      <TableCell>Average Order Value</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {data.map((row) => (
-                      <TableRow key={row.date}>
-                        <TableCell>{row.date}</TableCell>
-                        <TableCell>${row.totalSales}</TableCell>
-                        <TableCell>{row.numberOfOrders}</TableCell>
-                        <TableCell>${row.averageOrderValue}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Grid>
-          </Grid>
-        );
+      const response = await fetch(`${API_URL}/api/reports?${queryParams}`, {
+        headers: {
+          'Authorization': `Bearer ${user.token}`,
+        },
+      });
 
-      case 'inventory':
-        return (
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                  Inventory Status
-                </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={data}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="category" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="quantity" fill="#82ca9d" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </Paper>
-            </Grid>
-            <Grid item xs={12}>
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Product</TableCell>
-                      <TableCell>Category</TableCell>
-                      <TableCell>Current Stock</TableCell>
-                      <TableCell>Reorder Point</TableCell>
-                      <TableCell>Status</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {data.map((row) => (
-                      <TableRow key={row.product}>
-                        <TableCell>{row.product}</TableCell>
-                        <TableCell>{row.category}</TableCell>
-                        <TableCell>{row.currentStock}</TableCell>
-                        <TableCell>{row.reorderPoint}</TableCell>
-                        <TableCell>{row.status}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Grid>
-          </Grid>
-        );
+      if (!response.ok) {
+        throw new Error('Failed to fetch reports');
+      }
 
-      case 'orders':
-        return (
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                  Order Status Distribution
-                </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={data}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="status" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="count" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </Paper>
-            </Grid>
-            <Grid item xs={12}>
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Order ID</TableCell>
-                      <TableCell>Date</TableCell>
-                      <TableCell>Customer</TableCell>
-                      <TableCell>Total Amount</TableCell>
-                      <TableCell>Status</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {data.map((row) => (
-                      <TableRow key={row.orderId}>
-                        <TableCell>{row.orderId}</TableCell>
-                        <TableCell>{row.date}</TableCell>
-                        <TableCell>{row.customer}</TableCell>
-                        <TableCell>${row.totalAmount}</TableCell>
-                        <TableCell>{row.status}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Grid>
-          </Grid>
-        );
-
-      default:
-        return null;
+      const data = await response.json();
+      setReports(data.reports);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleGenerateSlip = async (report) => {
+    try {
+      setLoading(true);
+      const user = JSON.parse(localStorage.getItem('user'));
+      
+      const response = await fetch(`${API_URL}/api/reports/slip/${report._id}`, {
+        headers: {
+          'Authorization': `Bearer ${user.token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate slip');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `slip-${report._id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFilterChange = (field) => (event) => {
+    setFilters(prev => ({
+      ...prev,
+      [field]: event.target.value
+    }));
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4">Reports</Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Report Type</InputLabel>
-            <Select
-              value={reportType}
-              label="Report Type"
-              onChange={handleReportTypeChange}
-            >
-              <MenuItem value="sales">Sales Report</MenuItem>
-              <MenuItem value="inventory">Inventory Report</MenuItem>
-              <MenuItem value="orders">Orders Report</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Time Range</InputLabel>
-            <Select
-              value={timeRange}
-              label="Time Range"
-              onChange={handleTimeRangeChange}
-            >
-              <MenuItem value="day">Last 24 Hours</MenuItem>
-              <MenuItem value="week">Last Week</MenuItem>
-              <MenuItem value="month">Last Month</MenuItem>
-              <MenuItem value="year">Last Year</MenuItem>
-            </Select>
-          </FormControl>
-          <Button variant="contained" onClick={handleGenerateReport}>
-            Generate Report
-          </Button>
+    <Box sx={{ flexGrow: 1, p: 3 }}>
+      {/* Header Section */}
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box>
+          <Typography variant="h4" gutterBottom>
+            Reports & Slips
+          </Typography>
+          <Typography variant="subtitle1" color="text.secondary">
+            Generate and manage reports and slips
+          </Typography>
         </Box>
       </Box>
 
-      {renderReport()}
+      {/* Filters Section */}
+      <Paper sx={{ p: 3, mb: 4, bgcolor: 'background.default' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <FilterIcon sx={{ mr: 1 }} />
+          <Typography variant="h6">Filters</Typography>
+        </Box>
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              fullWidth
+              label="Start Date"
+              type="date"
+              value={filters.startDate}
+              onChange={handleFilterChange('startDate')}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              fullWidth
+              label="End Date"
+              type="date"
+              value={filters.endDate}
+              onChange={handleFilterChange('endDate')}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <FormControl fullWidth>
+              <InputLabel>Report Type</InputLabel>
+              <Select
+                value={filters.reportType}
+                label="Report Type"
+                onChange={handleFilterChange('reportType')}
+              >
+                <MenuItem value="all">All Reports</MenuItem>
+                <MenuItem value="inventory">Inventory Reports</MenuItem>
+                <MenuItem value="sales">Sales Reports</MenuItem>
+                <MenuItem value="orders">Order Reports</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {/* Reports List */}
+      <Paper sx={{ bgcolor: 'background.default' }}>
+        <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
+          <Typography variant="h6">Reports</Typography>
+        </Box>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Report ID</TableCell>
+                <TableCell>Type</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell align="right">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {reports.map((report) => (
+                <TableRow key={report._id}>
+                  <TableCell>{report._id}</TableCell>
+                  <TableCell>{report.type}</TableCell>
+                  <TableCell>{new Date(report.date).toLocaleDateString()}</TableCell>
+                  <TableCell>{report.description}</TableCell>
+                  <TableCell align="right">
+                    <Tooltip title="Generate Slip">
+                      <IconButton 
+                        onClick={() => handleGenerateSlip(report)}
+                        color="primary"
+                        disabled={loading}
+                      >
+                        <DownloadIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Print">
+                      <IconButton color="primary">
+                        <PrintIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Download PDF">
+                      <IconButton color="primary">
+                        <PdfIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+
+      {/* Error Alert */}
+      {error && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error}
+        </Alert>
+      )}
     </Box>
   );
 };

@@ -64,12 +64,14 @@ const productRoutes = require('./routes/products');
 const inventoryRoutes = require('./routes/inventory');
 const orderRoutes = require('./routes/orders');
 const dashboardRoutes = require('./routes/dashboard');
+const reportRoutes = require('./routes/reports');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/reports', reportRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -172,7 +172,7 @@ const Dashboard = () => {
           <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
             <Typography variant="h6" color="primary">Total Revenue</Typography>
             <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-              ₹${(totalRevenue || 0).toLocaleString()}
+              ₹{(totalRevenue || 0).toLocaleString()}
             </Typography>
           </Paper>
         </Grid>
