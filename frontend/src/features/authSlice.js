@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axios from '../utils/axios';
 
-const API_URL = 'http://localhost:5001/api';
+const API_URL = '/api';
 
 // Helper function to store user data
 const storeUserData = (userData) => {

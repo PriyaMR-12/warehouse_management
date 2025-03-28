@@ -1,177 +1,170 @@
-import React, { useEffect, useState } from 'react';
-import { io } from 'socket.io-client';
+import React from 'react';
 import {
   Box,
-  Typography,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  Typography,
+  Stepper,
+  Step,
+  StepLabel,
+  Grid,
+  Card,
+  CardContent,
   Chip,
-  IconButton,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  MenuItem,
+  Divider
 } from '@mui/material';
 import {
-  Edit as EditIcon,
-  PictureAsPdf as PdfIcon,
-  LocalShipping as ShippingIcon,
+  LocalShipping,
+  Inventory,
+  Payment,
+  CheckCircle
 } from '@mui/icons-material';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import Invoice from './documents/Invoice';
-import PackingSlip from './documents/PackingSlip';
-
-const SOCKET_URL = 'http://localhost:5001';
 
 const OrderTracking = () => {
-  const [orders, setOrders] = useState([]);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
-  const [socket, setSocket] = useState(null);
-
-  useEffect(() => {
-    // Initialize socket connection
-    const newSocket = io(SOCKET_URL);
-    setSocket(newSocket);
-
-    // Listen for order updates
-    newSocket.on('orderUpdate', (updatedOrder) => {
-      setOrders(prevOrders => 
-        prevOrders.map(order => 
-          order._id === updatedOrder._id ? updatedOrder : order
-        )
-      );
-    });
-
-    // Listen for new orders
-    newSocket.on('newOrder', (newOrder) => {
-      setOrders(prevOrders => [...prevOrders, newOrder]);
-    });
-
-    return () => newSocket.disconnect();
-  }, []);
-
-  const handleStatusUpdate = (orderId, newStatus) => {
-    socket.emit('updateOrderStatus', { orderId, status: newStatus });
-  };
+  // Dummy order tracking data
+  const recentOrders = [
+    {
+      id: 1,
+      orderNumber: "ORD-2024-001",
+      date: "2024-03-15",
+      status: "Delivered",
+      items: [
+        { name: "White Kurtha", quantity: 5, price: 1500 },
+        { name: "Water Bottle", quantity: 10, price: 200 }
+      ],
+      totalAmount: 9500,
+      timeline: [
+        { status: "Order Placed", date: "2024-03-15 10:00 AM", completed: true },
+        { status: "Payment Confirmed", date: "2024-03-15 10:30 AM", completed: true },
+        { status: "Processing", date: "2024-03-15 11:00 AM", completed: true },
+        { status: "Shipped", date: "2024-03-15 02:00 PM", completed: true },
+        { status: "Delivered", date: "2024-03-15 05:00 PM", completed: true }
+      ]
+    },
+    {
+      id: 2,
+      orderNumber: "ORD-2024-002",
+      date: "2024-03-16",
+      status: "Processing",
+      items: [
+        { name: "Pen", quantity: 100, price: 10 },
+        { name: "Water Bottle", quantity: 5, price: 200 }
+      ],
+      totalAmount: 2000,
+      timeline: [
+        { status: "Order Placed", date: "2024-03-16 09:00 AM", completed: true },
+        { status: "Payment Confirmed", date: "2024-03-16 09:30 AM", completed: true },
+        { status: "Processing", date: "2024-03-16 10:00 AM", completed: true },
+        { status: "Shipped", date: "", completed: false },
+        { status: "Delivered", date: "", completed: false }
+      ]
+    },
+    {
+      id: 3,
+      orderNumber: "ORD-2024-003",
+      date: "2024-03-16",
+      status: "Payment Pending",
+      items: [
+        { name: "White Kurtha", quantity: 2, price: 1500 }
+      ],
+      totalAmount: 3000,
+      timeline: [
+        { status: "Order Placed", date: "2024-03-16 11:00 AM", completed: true },
+        { status: "Payment Confirmed", date: "", completed: false },
+        { status: "Processing", date: "", completed: false },
+        { status: "Shipped", date: "", completed: false },
+        { status: "Delivered", date: "", completed: false }
+      ]
+    }
+  ];
 
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
-      case 'pending':
-        return 'warning';
-      case 'in progress':
-        return 'info';
-      case 'shipped':
+      case 'delivered':
         return 'success';
+      case 'processing':
+        return 'warning';
+      case 'shipped':
+        return 'info';
+      case 'payment pending':
+        return 'error';
       default:
         return 'default';
     }
   };
 
-  const handleUpdateDialogOpen = (order) => {
-    setSelectedOrder(order);
-    setIsUpdateDialogOpen(true);
-  };
-
-  const handleUpdateDialogClose = () => {
-    setSelectedOrder(null);
-    setIsUpdateDialogOpen(false);
-  };
-
   return (
     <Box sx={{ mt: 4 }}>
-      <Typography variant="h5" gutterBottom>
+      <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <LocalShipping color="primary" />
         Order Tracking
       </Typography>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Order ID</TableCell>
-              <TableCell>Customer</TableCell>
-              <TableCell>Date</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Total</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {orders.map((order) => (
-              <TableRow key={order._id}>
-                <TableCell>{order.orderNumber}</TableCell>
-                <TableCell>{order.customer.name}</TableCell>
-                <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
-                <TableCell>
+
+      <Grid container spacing={3}>
+        {recentOrders.map((order) => (
+          <Grid item xs={12} key={order.id}>
+            <Card sx={{ bgcolor: 'background.default' }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h6">
+                    Order #{order.orderNumber}
+                  </Typography>
                   <Chip
                     label={order.status}
                     color={getStatusColor(order.status)}
-                    size="small"
+                    size="medium"
                   />
-                </TableCell>
-                <TableCell>${order.totalAmount.toFixed(2)}</TableCell>
-                <TableCell>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleUpdateDialogOpen(order)}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <PDFDownloadLink
-                    document={<Invoice order={order} />}
-                    fileName={`invoice-${order.orderNumber}.pdf`}
-                  >
-                    {({ loading }) => (
-                      <IconButton size="small" disabled={loading}>
-                        <PdfIcon />
-                      </IconButton>
-                    )}
-                  </PDFDownloadLink>
-                  <PDFDownloadLink
-                    document={<PackingSlip order={order} />}
-                    fileName={`packing-slip-${order.orderNumber}.pdf`}
-                  >
-                    {({ loading }) => (
-                      <IconButton size="small" disabled={loading}>
-                        <ShippingIcon />
-                      </IconButton>
-                    )}
-                  </PDFDownloadLink>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                </Box>
 
-      {/* Update Status Dialog */}
-      <Dialog open={isUpdateDialogOpen} onClose={handleUpdateDialogClose}>
-        <DialogTitle>Update Order Status</DialogTitle>
-        <DialogContent>
-          <TextField
-            select
-            fullWidth
-            label="Status"
-            value={selectedOrder?.status || ''}
-            onChange={(e) => handleStatusUpdate(selectedOrder._id, e.target.value)}
-            sx={{ mt: 2 }}
-          >
-            <MenuItem value="pending">Pending</MenuItem>
-            <MenuItem value="in progress">In Progress</MenuItem>
-            <MenuItem value="shipped">Shipped</MenuItem>
-          </TextField>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleUpdateDialogClose}>Close</Button>
-        </DialogActions>
-      </Dialog>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Order Date
+                    </Typography>
+                    <Typography variant="body1">
+                      {new Date(order.date).toLocaleDateString()}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Total Amount
+                    </Typography>
+                    <Typography variant="body1">
+                      ₹{order.totalAmount.toLocaleString()}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Items
+                    </Typography>
+                    <Typography variant="body1">
+                      {order.items.map(item => `${item.quantity}x ${item.name}`).join(', ')}
+                    </Typography>
+                  </Grid>
+                </Grid>
+
+                <Divider sx={{ my: 2 }} />
+
+                <Stepper activeStep={order.timeline.filter(step => step.completed).length}>
+                  {order.timeline.map((step, index) => (
+                    <Step key={index} completed={step.completed}>
+                      <StepLabel>
+                        <Typography variant="caption">
+                          {step.status}
+                          {step.date && (
+                            <Box component="span" sx={{ display: 'block', fontSize: '0.75rem', color: 'text.secondary' }}>
+                              {step.date}
+                            </Box>
+                          )}
+                        </Typography>
+                      </StepLabel>
+                    </Step>
+                  ))}
+                </Stepper>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
     </Box>
   );
 };

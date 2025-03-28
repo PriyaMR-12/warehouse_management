@@ -365,7 +365,7 @@ const Orders = () => {
                       {new Date(order.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                      ₹{order.totalAmount.toLocaleString()}
+                      ₹{(order.totalAmount || 0).toLocaleString()}
                     </TableCell>
                     <TableCell>
                       <Chip
@@ -541,7 +541,7 @@ const Orders = () => {
                     }}>
                       <Typography sx={{ flex: 1, fontWeight: 500 }}>{product?.name}</Typography>
                       <Typography variant="body2" color="text.secondary">
-                        ₹{item.productPrice.toLocaleString()}
+                        ₹{(item.productPrice || 0).toLocaleString()}
                       </Typography>
                       <TextField
                         margin="dense"

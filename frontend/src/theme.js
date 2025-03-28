@@ -54,6 +54,19 @@ const theme = createTheme({
     body1: {
       letterSpacing: '0.01em',
     },
+    subtitle1: {
+      color: '#E0E0E0',
+      fontWeight: 500,
+    },
+    subtitle2: {
+      color: '#E0E0E0',
+      fontWeight: 500,
+    },
+    button: {
+      color: '#FFFFFF',
+      fontWeight: 600,
+      textTransform: 'none',
+    },
   },
   components: {
     MuiAppBar: {
@@ -139,39 +152,6 @@ const theme = createTheme({
         },
       },
     },
-    MuiListItemButton: {
-      styleOverrides: {
-        root: {
-          '&:hover': {
-            background: 'rgba(224, 122, 95, 0.08)',
-          },
-        },
-      },
-    },
-    MuiDivider: {
-      styleOverrides: {
-        root: {
-          borderColor: '#3D3D3D',
-        },
-      },
-    },
-    MuiTableCell: {
-      styleOverrides: {
-        root: {
-          transition: 'all 0.2s ease-in-out',
-        },
-      },
-    },
-    MuiTableRow: {
-      styleOverrides: {
-        root: {
-          transition: 'all 0.2s ease-in-out',
-          '&:hover': {
-            backgroundColor: 'rgba(25, 118, 210, 0.05)',
-          },
-        },
-      },
-    },
     MuiIconButton: {
       styleOverrides: {
         root: {
@@ -189,6 +169,27 @@ const theme = createTheme({
           '&:hover': {
             transform: 'scale(1.05)',
           },
+        },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          borderColor: '#2A4A50',
+          color: '#FFFFFF',
+        },
+        head: {
+          background: '#1A3A40',
+          color: '#FFFFFF',
+          fontWeight: 600,
+        },
+      },
+    },
+    MuiTableContainer: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
         },
       },
     },

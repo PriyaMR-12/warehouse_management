@@ -1,31 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
-
-const API_URL = 'http://localhost:5001/api';
+import axios from '../utils/axios';
 
 export const fetchDashboardData = createAsyncThunk(
   'dashboard/fetchData',
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await axios.get(`${API_URL}/dashboard`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      const response = await axios.get('/api/dashboard');
       return response.data;
     } catch (error) {
-      console.error('Dashboard Error:', error.response || error);
-      if (error.response?.status === 401) {
-        // Clear invalid token
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        throw new Error('Session expired. Please login again.');
-      }
       return rejectWithValue(error.response?.data || { message: error.message });
     }
   }
@@ -36,6 +18,7 @@ const initialState = {
   totalOrders: 0,
   lowStockItems: 0,
   totalRevenue: 0,
+  recentOrders: [],
   loading: false,
   error: null
 };
@@ -60,6 +43,7 @@ const dashboardSlice = createSlice({
         state.totalOrders = action.payload.totalOrders;
         state.lowStockItems = action.payload.lowStockItems;
         state.totalRevenue = action.payload.totalRevenue;
+        state.recentOrders = action.payload.recentOrders;
       })
       .addCase(fetchDashboardData.rejected, (state, action) => {
         state.loading = false;

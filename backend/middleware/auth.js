@@ -3,12 +3,11 @@ const User = require('../models/User');
 
 const auth = async (req, res, next) => {
     try {
-        const token = req.header('Authorization')?.replace('Bearer ', '');
+        const token = req.header('x-auth-token');
         
         if (!token) {
             return res.status(401).json({ 
-                message: 'No authentication token provided.',
-                error: 'AUTH_NO_TOKEN'
+                message: 'No token, authorization denied'
             });
         }
 
@@ -29,8 +28,7 @@ const auth = async (req, res, next) => {
         } catch (jwtError) {
             console.error('JWT Verification Error:', jwtError);
             return res.status(401).json({ 
-                message: 'Invalid or expired token.',
-                error: 'AUTH_INVALID_TOKEN'
+                message: 'Token is not valid'
             });
         }
     } catch (error) {
